@@ -33,30 +33,30 @@ SLAVE2_DATA_STRUCTURE mydata_front;
 
 // Slave 1 - Front End - top ctrl panel!
 
-int but1;     // left bottom
-int but2;     // right bottom
-int but3;     // left top
-int but4;     // right top
+byte but1;     // left bottom
+byte but2;     // right bottom
+byte but3;     // left top
+byte but4;     // right top
 
-int home1 = 1;
-int home1a = 1;
-int home2 = 1;
-int home2a = 1;
-int home3 = 1;
-int home3a = 1;
-int home4 = 1;
-int home4a = 1;
-int home5 = 1;
-int home5a = 1;
-int home6 = 1;
-int home6a = 1;
+byte home1 = 1;
+byte home1a = 1;
+byte home2 = 1;
+byte home2a = 1;
+byte home3 = 1;
+byte home3a = 1;
+byte home4 = 1;
+byte home4a = 1;
+byte home5 = 1;
+byte home5a = 1;
+byte home6 = 1;
+byte home6a = 1;
 
-long home1Offset;
-long home2Offset;
-long home3Offset;
-long home4Offset;
-long home5Offset;
-long home6Offset;
+int home1Offset;
+int home2Offset;
+int home3Offset;
+int home4Offset;
+int home5Offset;
+int home6Offset;
 
 long home1Home;
 long home2Home;
@@ -65,40 +65,40 @@ long home4Home;
 long home5Home;
 long home6Home;
 
-int flag = 0;
+byte flag = 0;
 
-int motorSpeedFlag = 0;
+byte motorSpeedFlag = 0;
 
 int requested_state;
 
 unsigned long previousFilterMillis;   // digital pin filter
-int filterTime = 200;
+uint16_t filterTime = 200;
 
 unsigned long previousStartupmillis;
-int startupFlag = 0;
+byte startupFlag = 0;
 
 unsigned long previousMillis = 0;
 const long interval = 10;
 
-double hipRFiltered;          // value in mm
-double hipLFiltered;
-double hipRFiltered2;         // value in encoder counts  
-double hipLFiltered2;
-double shoulderRFiltered;     // value in mm
-double shoulderLFiltered;
-double shoulderRFiltered2;    // value in encoder counts
-double shoulderLFiltered2;
-double elbowRFiltered;        // value in mm
-double elbowLFiltered; 
-double elbowRFiltered2;       // value in encoder counts
-double elbowLFiltered2;
+float hipRFiltered;          // value in mm
+float hipLFiltered;
+float hipRFiltered2;         // value in encoder counts  
+float hipLFiltered2;
+float shoulderRFiltered;     // value in mm
+float shoulderLFiltered;
+float shoulderRFiltered2;    // value in encoder counts
+float shoulderLFiltered2;
+float elbowRFiltered;        // value in mm
+float elbowLFiltered; 
+float elbowRFiltered2;       // value in encoder counts
+float elbowLFiltered2;
 
-double hipROutput;            // actual output in encoder counts
-double hipLOutput;
-double shoulderROutput;       
-double shoulderLOutput;
-double elbowROutput;
-double elbowLOutput;
+float hipROutput;            // actual output in encoder counts
+float hipLOutput;
+float shoulderROutput;       
+float shoulderLOutput;
+float elbowROutput;
+float elbowLOutput;
 
 void setup() {
 
@@ -130,7 +130,6 @@ void setup() {
   Serial3.begin(115200);
   odrive_serial.begin(115200);    // software serial
 
-  
   //**************Slave Arduinos****************
   Serial1.begin(57600);
   ET4.begin(details(mydata_front), &Serial1);
@@ -141,17 +140,17 @@ void setup() {
   // ***set mtor parameters for initial setup***
 
   // right leg
-  for (int axis = 0; axis < 2; ++axis) {
+  for (byte axis = 0; axis < 2; ++axis) {
     Serial3 << "w axis" << axis << ".controller.config.vel_limit " << 22000.0f << '\n';
     Serial3 << "w axis" << axis << ".motor.config.current_lim " << 20.0f << '\n';
   }
   // left leg
-  for (int axis = 0; axis < 2; ++axis) {
+  for (byte axis = 0; axis < 2; ++axis) {
     Serial2 << "w axis" << axis << ".controller.config.vel_limit " << 22000.0f << '\n';
     Serial2 << "w axis" << axis << ".motor.config.current_lim " << 20.0f << '\n';
   }
   // undercariage
-  for (int axis = 0; axis < 2; ++axis) {
+  for (byte axis = 0; axis < 2; ++axis) {
     odrive_serial  << "w axis" << axis << ".controller.config.vel_limit " << 22000.0f << '\n';
     odrive_serial  << "w axis" << axis << ".motor.config.current_lim " << 20.0f << '\n';
   }
@@ -176,15 +175,15 @@ void loop() {
         home3 = digitalRead(47);
         home4 = digitalRead(49);
         home5 = digitalRead(51);
-        home6 = digitalRead(53);   
+        home6 = digitalRead(53); 
 
-     
-        // *********************right leg ****************
+
+        // ********************* Right leg ****************
       
         if (but1 == 0 && flag == 0) {
           digitalWrite(35, LOW);
           Serial.println("Right Motor 0");
-        
+
           requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
           Serial << "Axis" << 0 << ": Requesting state " << requested_state << '\n';
           odrive2.run_state(0, requested_state, true);      
@@ -211,12 +210,12 @@ void loop() {
           delay(300);
           //save zero position and back off two revolutions
           Serial3 << "r axis" << 0 << ".encoder.pos_estimate\n";
-          home4Offset = odrive2.readFloat();
+          home4Offset = odrive2.readInt();
           Serial.println(home4Offset);
           odrive2.SetPosition(0, (home4Offset-(8192*2)));  // back off one revolution
 
           Serial.println("Right Motor 1");
-                  
+
           requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
           Serial << "Axis" << 1 << ": Requesting state " << requested_state << '\n';
           odrive2.run_state(1, requested_state, true);      
@@ -248,14 +247,14 @@ void loop() {
           odrive2.SetPosition(1, (home3Offset-(8192*2)));  // back off one revolution
           flag = 1;
           digitalWrite(33, HIGH);     // Yellow top left
-        }      
-      
-        // ***left leg***
+        }
+
+       // ********************* left leg ****************
         
         else if (but2 == 0 && flag == 1) {
           digitalWrite(33, LOW);
           Serial.println("Left Motor 0");
-      
+
           requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
           Serial << "Axis" << 0 << ": Requesting state " << requested_state << '\n';
           odrive1.run_state(0, requested_state, true);      
@@ -324,29 +323,27 @@ void loop() {
           digitalWrite(33, HIGH);   // yellow right
           flag = 2;  
         }
-
-         else if (but2 == 0 || but1 == 0 && flag == 2) {
+        else if (but2 == 0 || but1 == 0 && flag == 2) {
            digitalWrite(35, LOW);
            digitalWrite(33, LOW);
 
-         for (int axis = 0; axis < 2; ++axis) {
+         for (byte axis = 0; axis < 2; ++axis) {
               Serial2 << "w axis" << axis << ".controller.config.vel_limit " << 48000.0f << '\n';     // set motor speed to fast ODrive1               
          }
-         for (int axis = 0; axis < 2; ++axis) {
+         for (byte axis = 0; axis < 2; ++axis) {
               Serial3 << "w axis" << axis << ".controller.config.vel_limit " << 48000.0f << '\n';     // set motor speed to fast ODrive2         
          }
            
-           odrive2.SetPosition(0, (home4Offset - 163840));      // move
-           odrive2.SetPosition(1, (home3Offset - 245760));      // move
+           odrive2.SetPosition(0, (home4Offset - 163840));      // move legs straight right
+           odrive2.SetPosition(1, (home3Offset - 245760));      // move legs straight right
                          
-           odrive1.SetPosition(0, (home2Offset - 163840));      // move
-           odrive1.SetPosition(1, (home1Offset - 245760));      // move
-        */
-        
+           odrive1.SetPosition(0, (home2Offset - 163840));      // move legs straight left
+           odrive1.SetPosition(1, (home1Offset - 245760));      // move legs straight left     
+        */ 
            digitalWrite(37, HIGH); // ready for undercarriage calibration
            flag = 3;
-        }        
-      
+        }
+
         // *****************************leg motor undercarriage**************************************
           
         else if (but3 == 0 && flag == 3) {
@@ -354,10 +351,10 @@ void loop() {
           digitalWrite(37, LOW);
 
           /*
+
           odrive2.SetPosition(0, (home4Offset - 16384));      // move leg bent right
           odrive2.SetPosition(1, (home3Offset - 16384));      // move leg bent right
           delay (2000); // wait for leg to bend
-
           */
           
           // calibrate right leg undercarriage, ODrive axis 1
@@ -404,14 +401,11 @@ void loop() {
           
           odrive_serial << "w axis" << 1 << ".controller.config.vel_limit " << 48000.0f << '\n';     // set motor speed to fast for Odrive 0 / axis 1          
           odrive0.SetPosition(1, (home6Offset+87654));  // back off 25mm
-          delay(3000);   // wait for leg to move out again  
+          delay(3000);   // wait for leg to move out again   
 
-          
-          
           // put leg straight again
           odrive2.SetPosition(0, (home4Offset - 163840));      // move legs straight right
           odrive2.SetPosition(1, (home3Offset - 245760));      // move legs straight right
-
           */
           
           digitalWrite(39, HIGH);   // white LED left bottom - ready for the other side
@@ -427,7 +421,7 @@ void loop() {
           odrive1.SetPosition(1, (home1Offset - 16384));      // move leg bent left
           delay (2000); // wait for leg to bend
           */
-          
+
           // calibrate right leg undercarriage, ODrive axis 0
           Serial.println("Right Leg undercarriage");          
           requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
@@ -456,6 +450,7 @@ void loop() {
             // move motor 0
             odrive0.SetVelocity(0, -10000);
             }
+
           //stop motor 0
           odrive0.SetVelocity(0, 0);
           
@@ -472,17 +467,14 @@ void loop() {
           
           odrive_serial << "w axis" << 0 << ".controller.config.vel_limit " << 48000.0f << '\n';     // set motor speed to fast for Odrive 0 / axis 0          
           odrive0.SetPosition(0, (home5Offset+87654));  // back off 25mm
-          delay(3000);   // wait for leg to move out again    
-
-          
-
+          delay(3000);   // wait for leg to move out again
 
           // put leg straight again
           odrive1.SetPosition(0, (home2Offset - 163840));      // move legs straight left
           odrive1.SetPosition(1, (home1Offset - 245760));      // move legs straight left   
-          
-          delay(3000);    // wait for the leg to be straight   
-           */       
+
+          delay(3000);    // wait for the leg to be straight 
+          */
           flag = 5;       // proceed to next stage
         }
 
@@ -501,10 +493,10 @@ void loop() {
                         Serial3 << "w axis" << 1 << ".controller.config.vel_limit " << 200000.0f << '\n';
                         
                         motorSpeedFlag = 1;  // set the flag after this has run once so it never runs again
-                        
+
                 }
 
-                // ***********serial receive from master***************  
+                // ***********serial receive from master***************
                 if (ET4.receiveData()) {
 
                   if(startupFlag == 0) {
@@ -518,14 +510,14 @@ void loop() {
                 mydata_front.elbowL = constrain(mydata_front.elbowL, 80,200);
                 mydata_front.hipR = constrain(mydata_front.hipR, -35,35);
                 mydata_front.hipL = constrain(mydata_front.hipL, -35,35);
-                        
+
                 shoulderRFiltered = filter(mydata_front.shoulderR, shoulderRFiltered);
                 shoulderLFiltered = filter(mydata_front.shoulderL, shoulderLFiltered);
                 elbowRFiltered = filter(mydata_front.elbowR, elbowRFiltered);
                 elbowLFiltered = filter(mydata_front.elbowL, elbowLFiltered);
 
                 // ********* LEGS OUTPUT *********
-          
+        
                 shoulderRFiltered2 = shoulderRFiltered*3490;   // work out encoder counts per milimeter
                 shoulderLFiltered2 = shoulderLFiltered*3490;   // work out encoder counts per milimeter
                 elbowRFiltered2 = elbowRFiltered*3490;   // work out encoder counts per milimeter
@@ -535,9 +527,9 @@ void loop() {
                 elbowROutput = home3Offset - (715450 - elbowRFiltered2);
 
                 shoulderLOutput = home2Offset - (715450 - shoulderLFiltered2);      // use offset from homing minus the actual postion of the leg from the joint
-                elbowLOutput = home1Offset - (715450 - elbowLFiltered2);                          
-                
-                 // ******** HIP - UNDERCARRIAGE OUTPUT *********
+                elbowLOutput = home1Offset - (715450 - elbowLFiltered2);             
+   
+                // ******** HIP - UNDERCARRIAGE OUTPUT *********
 
                 hipRFiltered = filter(mydata_front.hipR, hipRFiltered);    // filtered value in mm
                 hipLFiltered = filter(mydata_front.hipL, hipLFiltered);    // filtered value in mm
@@ -548,7 +540,7 @@ void loop() {
                 //hipROutput = (home6Offset+87654)+hipRFiltered;            // +/- mid actuator postion with new data
                 //hipLOutput = (home5Offset+87654)+hipLFiltered;            // +/- mid actuator postion with new data
 
-                hipROutput = hipRFiltered2;               // +/- mid actuator postion with new data
+                hipROutput = hipRFiltered2;            // +/- mid actuator postion with new data
                 hipLOutput = hipLFiltered2;            // +/- mid actuator postion with new data
 
                 if (currentMillis - previousStartupmillis > 3000) {   // makes sure filter has settled the first time    
@@ -560,12 +552,11 @@ void loop() {
                     odrive0.SetPosition(1, hipROutput);                        // output data to ODrive
                 }
                     
-                } // end of receive data 
+                } // end of receive data
 
-         }   // end of main output to leg
+          }   // end of main output to leg
 
-
-   } // end of timed event 
+   } // end of timed event
 
 
 }
@@ -573,9 +564,8 @@ void loop() {
 
 //***************filter joint motions*****************
 
-double filter(double lengthOrig, double currentValue) {
-  double filter = 40;
-  double lengthFiltered =  (lengthOrig + (currentValue * filter)) / (filter + 1);
+float filter(float lengthOrig, float currentValue) {
+  float filter = 40;
+  float lengthFiltered =  (lengthOrig + (currentValue * filter)) / (filter + 1);
   return lengthFiltered;  
 }
-
