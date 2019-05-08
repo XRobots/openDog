@@ -77,6 +77,16 @@ void setup() {
 
 }
 
+
+float radToDeg(radians) {
+  return radians * 4068/71
+}
+
+float degToRad(degrees) {
+  return degrees * 71/4068
+}
+
+
 void loop() {
 
    unsigned long currentMillis = millis();
@@ -117,16 +127,12 @@ void loop() {
 
             legLength = map(mydata_remote.RT,0,1023,380,650);             // map control data to mm
 
-            kneeAngle = acos ( (sq(DIGITLENGTH) + sq(DIGITLENGTH) - sq(legLength)) / (2 * DIGITLENGTH * DIGITLENGTH) );          
-            kneeAngle = (kneeAngle * 4068) / 71;                          // convert radians to degrees
-            kneeAngle2a = kneeAngle - KNEEACTANGLE;                       // take away known angle
-            kneeAngle2 = (kneeAngle2a * 71) / 4068;                        // convert degrees to radians
+            kneeAngle = acos ( (sq(DIGITLENGTH) + sq(DIGITLENGTH) - sq(legLength)) / (2 * DIGITLENGTH * DIGITLENGTH) );
+            kneeAngle2 = kneeAngle - degToRad(KNEEACTANGLE);                       // take away known angle
 
             kneeAngle3 = asin ( (KNEEROD2 * sin(kneeAngle2)/KNEEROD));
-            kneeAngle3a = (kneeAngle3 * 4068 / 71);                        // convert radians to degrees
 
-            kneeAngle4a = 180 - kneeAngle2a - kneeAngle3a;                  // we now know all four angles
-            kneeAngle4 = (kneeAngle4a * 71) / 4068;                        // convert degrees to radians
+            kneeAngle4 = degToRad(180) - kneeAngle2 - kneeAngle3;                  // we now know all four angles
 
             kneeActuator = (((sin(kneeAngle4)) * KNEEROD)) / sin(kneeAngle2);
 
