@@ -222,10 +222,8 @@ double leg(double Z, double Y, double X2, int side) {
             else if (side == 0) {                                 //left leg
               X = HIPROD-X2;                                     // turn around direction of leg for each side of the robot
             }
-
-            if (X == 0) { X = 0.1; }                             // avoid divide by zero
   
-            hipAngle1 = atan(X / Z);                             // calc hip angle from vertical
+            hipAngle1 = atan2(X, Z);                             // calc hip angle from vertical
             hipAngle1a = (hipAngle1 * 4068) / 71;
             hipHypotenuse = X / sin(hipAngle1);                  // calc distance from hip pivot to foot
 
@@ -242,8 +240,7 @@ double leg(double Z, double Y, double X2, int side) {
 
             //************ Y axis calcs **************
 
-            if (Y == 0) { Y = 0.1; }                             // avoid divide by zero
-            shoulderOffset = atan(Y / legHeight);                // calc shoulder angle offset
+            shoulderOffset = atan2(Y, legHeight);                // calc shoulder angle offset
             shoulderOffset_a = (shoulderOffset * 4068) / 71;     // covert radians to degrees
             legLength = Y / sin(shoulderOffset);                 // calc hypotenuse of triangle to make actual leg length 
             
