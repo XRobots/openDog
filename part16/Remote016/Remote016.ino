@@ -8,21 +8,21 @@
 // Set the pins on the I2C chip used for LCD connections (Some LCD use Address 0x27 and others use 0x3F):
 LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
-unsigned long previousMillis = 0;
+unsigned long previousMillis = 0; // The timestamp at which we last sent a radio packet.
 const long interval = 20;
 
-int but1;
-int but2;
-int but3;
-int but4;
-int but5;
+const int BUTTON1_PIN = 38;
+const int BUTTON2_PIN = 40;
+const int BUTTON3_PIN = 42;
+const int BUTTON4_PIN = 44;
+const int BUTTON5_PIN = 46;
 
-int axis1;
-int axis2;
-int axis3;
-int axis4;
-int axis5;
-int axis6;
+const int AXIS1_PIN = A0;
+const int AXIS2_PIN = A1;
+const int AXIS3_PIN = A2;
+const int AXIS4_PIN = A3;
+const int AXIS5_PIN = A4;
+const int AXIS6_PIN = A5;
 
 String count;
 
@@ -61,160 +61,107 @@ RF24 radio(7, 8); // CE, CSN
 const byte addresses[][6] = {"00001", "00002"};
 
 
-void setup() {  
+void setup() {
+    lcd.init();
+    lcd.backlight();
 
-  lcd.init();  // initialize the lcd 
-  lcd.backlight();
+    pinMode(BUTTON1_PIN, INPUT_PULLUP);
+    pinMode(BUTTON2_PIN, INPUT_PULLUP);
+    pinMode(BUTTON3_PIN, INPUT_PULLUP);
+    pinMode(BUTTON4_PIN, INPUT_PULLUP);
+    pinMode(BUTTON5_PIN, INPUT_PULLUP);
 
-  pinMode(38, INPUT_PULLUP);
-  pinMode(40, INPUT_PULLUP);
-  pinMode(42, INPUT_PULLUP);
-  pinMode(44, INPUT_PULLUP);
-  pinMode(46, INPUT_PULLUP);
+    pinMode(AXIS1_PIN, INPUT);
+    pinMode(AXIS2_PIN, INPUT);
+    pinMode(AXIS3_PIN, INPUT);
+    pinMode(AXIS4_PIN, INPUT);
+    pinMode(AXIS5_PIN, INPUT);
+    pinMode(AXIS6_PIN, INPUT);
 
-  pinMode(A0, INPUT);
-  pinMode(A1, INPUT);
-  pinMode(A2, INPUT);
-  pinMode(A4, INPUT);
-  pinMode(A5, INPUT);
-  pinMode(A6, INPUT);
-  
-  radio.begin();
-  radio.openWritingPipe(addresses[1]); // 00001
-  radio.openReadingPipe(1, addresses[0]); // 00002
-  radio.setPALevel(RF24_PA_MIN);
+    radio.begin();
+    radio.openWritingPipe(addresses[1]); // 00001
+    radio.openReadingPipe(1, addresses[0]); // 00002
+    radio.setPALevel(RF24_PA_MIN);
 
-  lcd.begin(20,4);   // Initialize the lcd for 20 chars 4 lines, turn on backlight
+    lcd.begin(20,4);   // Initialize the lcd for 20 chars 4 lines, turn on backlight
 
-  lcd.setCursor(0,0);
-  lcd.print("openDog Remote      ");
-  lcd.setCursor(0,1);
-  lcd.print("XRobots.co.uk       ");
-    
+    lcd.setCursor(0,0);
+    lcd.print("openDog Remote      ");
+    lcd.setCursor(0,1);
+    lcd.print("XRobots.co.uk       ");
+
 }
 
 void loop() {
+    unsigned long currentMillis = millis();
+    if (remoteFlag == 0 && currentMillis - previousMillis >= 5) {
 
-     unsigned long currentMillis = millis();
-         if (remoteFlag == 0 && currentMillis - previousMillis >= 5) { 
+        mydata_send.menuDown = !digitalRead(BUTTON1_PIN);
+        mydata_send.Select = !digitalRead(BUTTON2_PIN);
+        mydata_send.menuUp = !digitalRead(BUTTON3_PIN);
+        mydata_send.toggleBottom = !digitalRead(BUTTON4_PIN);
+        mydata_send.toggleTop = !digitalRead(BUTTON5_PIN);
 
-              but1 =  digitalRead(38);
-              but2 =  digitalRead(40);
-              but3 =  digitalRead(42);
-              but4 =  digitalRead(44);
-              but5 =  digitalRead(46);                     
-              
-              if (but1 == 0) {
-                mydata_send.menuDown = 1;
-              }
-              else {
-                mydata_send.menuDown = 0;
-              }
-              
-              if (but2 == 0) {
-                mydata_send.Select = 1;
-              }
-              else {
-                mydata_send.Select = 0;
-              }
-              
-              if (but3 == 0) {
-                mydata_send.menuUp = 1;
-              }
-              else {
-                mydata_send.menuUp = 0;
-              }
-              
-              if (but4 == 0) {
-                mydata_send.toggleBottom = 1;
-              }
-              else {
-                mydata_send.toggleBottom = 0;
-              }
-              
-              if (but5 == 0) {
-                mydata_send.toggleTop = 1;
-              }
-              else {
-                mydata_send.toggleTop = 0;
-              }
-              
-              axis1 = analogRead(A0);
-              axis2 = analogRead(A1);
-              axis3 = analogRead(A2);
-              axis4 = analogRead(A3);
-              axis5 = analogRead(A4);
-              axis6 = analogRead(A5);
-              
-              mydata_send.RLR = axis1;
-              mydata_send.RFB = axis2;
-              mydata_send.RT = axis3;
-              mydata_send.LLR = axis4;
-              mydata_send.LFB = axis5;
-              mydata_send.LT = axis6;                       
-              
-              //delay(5);
-              //radio.startListening();              
-              //radio.read(&mydata_remote, sizeof(RECEIVE_DATA_STRUCTURE_REMOTE));
+        mydata_send.RLR = analogRead(AXIS1_PIN);
+        mydata_send.RFB = analogRead(AXIS2_PIN);
+        mydata_send.RT = analogRead(AXIS3_PIN);
+        mydata_send.LLR = analogRead(AXIS4_PIN);
+        mydata_send.LFB = analogRead(AXIS5_PIN);
+        mydata_send.LT = analogRead(AXIS6_PIN);
 
-              count = String(mydata_remote.count);
+        //delay(5);
+        //radio.startListening();
+        //radio.read(&mydata_remote, sizeof(RECEIVE_DATA_STRUCTURE_REMOTE));
 
+        count = String(mydata_remote.count);
 
-              /*
-              
-              lcd.setCursor(0,3);
-              lcd.print(count);
-    
-              if (mydata_remote.mode == 0) {
-                lcd.setCursor(0,0);
-                lcd.print("Mode 0 - Safe       ");
-                lcd.setCursor(0,1);
-                lcd.print("                    ");
-              }
-              else if (mydata_remote.mode == 1) {
-                lcd.setCursor(0,0);
-                lcd.print("Mode 1 - Kin Test   ");
-                lcd.setCursor(0,1);
-                lcd.print("                    ");
-              }
-              else if (mydata_remote.mode == 2) {
-                lcd.setCursor(0,0);
-                lcd.print("Mode 2 -            ");
-                lcd.setCursor(0,1);
-                lcd.print("                    ");
-              }
-              else if (mydata_remote.mode == 3) {
-                lcd.setCursor(0,0);
-                lcd.print("Mode 3 -            ");
-                lcd.setCursor(0,1);
-                lcd.print("                    ");
-              }
-              else if (mydata_remote.mode == 4) {
-                lcd.setCursor(0,0);
-                lcd.print("Mode 4 -            ");
-                lcd.setCursor(0,1);
-                lcd.print("                    ");
-              }
-              else if (mydata_remote.mode == 5) {
-                lcd.setCursor(0,0);
-                lcd.print("Mode 5 -            ");
-                lcd.setCursor(0,1);
-                lcd.print("                    ");
-              }
+        /*
 
-              */
+        lcd.setCursor(0,3);
+        lcd.print(count);
 
-              radio.stopListening();
-              radio.write(&mydata_send, sizeof(SEND_DATA_STRUCTURE));
-                
-              previousMillis = currentMillis;  
-         }        
-        
+        if (mydata_remote.mode == 0) {
+        lcd.setCursor(0,0);
+        lcd.print("Mode 0 - Safe       ");
+        lcd.setCursor(0,1);
+        lcd.print("                    ");
+        }
+        else if (mydata_remote.mode == 1) {
+        lcd.setCursor(0,0);
+        lcd.print("Mode 1 - Kin Test   ");
+        lcd.setCursor(0,1);
+        lcd.print("                    ");
+        }
+        else if (mydata_remote.mode == 2) {
+        lcd.setCursor(0,0);
+        lcd.print("Mode 2 -            ");
+        lcd.setCursor(0,1);
+        lcd.print("                    ");
+        }
+        else if (mydata_remote.mode == 3) {
+        lcd.setCursor(0,0);
+        lcd.print("Mode 3 -            ");
+        lcd.setCursor(0,1);
+        lcd.print("                    ");
+        }
+        else if (mydata_remote.mode == 4) {
+        lcd.setCursor(0,0);
+        lcd.print("Mode 4 -            ");
+        lcd.setCursor(0,1);
+        lcd.print("                    ");
+        }
+        else if (mydata_remote.mode == 5) {
+        lcd.setCursor(0,0);
+        lcd.print("Mode 5 -            ");
+        lcd.setCursor(0,1);
+        lcd.print("                    ");
+        }
 
+        */
 
-      
+        radio.stopListening();
+        radio.write(&mydata_send, sizeof(SEND_DATA_STRUCTURE));
 
-
-
-  }  // end of main loop
-
+        previousMillis = currentMillis;
+    }
+}  // end of main loop
