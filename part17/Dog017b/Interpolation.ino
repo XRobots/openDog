@@ -1,61 +1,45 @@
 // ****** Interpolation functions **************
+/** @todo remove redundant code */
 
 int interpolationZ(int input, int duration) {
-
-    static int interpolationFlag = 0;  
     static int savedValue;
 
-      if (input != savedValue) {   // check for new data
-          interpolationFlag = 0;
-      }
-      savedValue = input;          // bookmark the old value  
-    
-      if (interpolationFlag == 0) {                                        // only do it once until the flag is reset
-          myRampZ.go(input, duration, LINEAR, ONCEFORWARD);              // start interpolation (value to go to, duration)
-          interpolationFlag = 1;
-      }
-    
-      int output = myRampZ.update(); 
+    // check for new data
+    if (input != savedValue) {
+        // start interpolation (value to go to, duration)
+        myRampZ.go(input, duration, LINEAR, ONCEFORWARD);
+    }
 
-      return output;  
+    // bookmark the old value
+    savedValue = input;
+
+    return myRampZ.update();
 }
 
 int interpolationY(int input, int duration) {
-
-    static int interpolationFlag = 0;  
     static int savedValue;
 
-      if (input != savedValue) {   // check for new data
-          interpolationFlag = 0;
-      }
-      savedValue = input;          // bookmark the old value  
-    
-      if (interpolationFlag == 0) {                                        // only do it once until the flag is reset
-          myRampY.go(input, duration, LINEAR, ONCEFORWARD);              // start interpolation (value to go to, duration)
-          interpolationFlag = 1;
-      }
-    
-      int output = myRampY.update(); 
+    // check for new data
+    if (input != savedValue) {
+        // start interpolation (value to go to, duration)
+        myRampY.go(input, duration, LINEAR, ONCEFORWARD);
+    }
+    // bookmark the old value
+    savedValue = input;
 
-      return output;  
+    return myRampY.update();
 }
 
 int interpolationX(int input, int duration) {
-
-    static int interpolationFlag = 0;  
     static int savedValue;
 
-      if (input != savedValue) {   // check for new data
-          interpolationFlag = 0;
-      }
-      savedValue = input;          // bookmark the old value  
-    
-      if (interpolationFlag == 0) {                                        // only do it once until the flag is reset
-          myRampX.go(input, duration, LINEAR, ONCEFORWARD);              // start interpolation (value to go to, duration)
-          interpolationFlag = 1;
-      }
-    
-      int output = myRampX.update(); 
+    // check for new data
+    if (input != savedValue) {
+        // start interpolation (value to go to, duration)
+        imyRampX.go(input, duration, LINEAR, ONCEFORWARD);
+    }
+    // bookmark the old value
+    savedValue = input;
 
-      return output;  
+    return myRampX.update();
 }

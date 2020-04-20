@@ -261,149 +261,119 @@ void setup() {
 }
 
 void loop() {
-
         currentMillis = millis();   
         if (currentMillis - previousMillis >= 10) {     // start of 10ms cycle
+            previousMillis = currentMillis;   // reset the clock so the loop timing is correct
 
-        previousMillis = currentMillis;   // reset the clock so the loop timing is correct
-
-        radio.startListening();
+            radio.startListening();
             if (radio.available()) {
                     radio.read(&mydata_remote, sizeof(RECEIVE_DATA_STRUCTURE));
-                    previousSafetyMillis = currentMillis; 
-        }    
-
-        //  ************** menu handling & debounce *******************
-  
-        if (mydata_remote.menuUp == 1 && menuFlag == 0) {           
-          menuFlag = 1;
-          mode = mode+1;
-          mode = constrain(mode,0,10);
-          lcd.setCursor(0,3);
-          lcd.print("Mode - ");
-          lcd.setCursor(7,3);
-          lcd.print(mode);  
-          lcd.print("   ");      // clear any character left after the mode value
-        }            
-        else if (mydata_remote.menuDown == 1 && menuFlag == 0) {
-          menuFlag = 1;
-          mode = mode-1;
-          mode = constrain(mode,0,10);
-          lcd.setCursor(0,3);
-          lcd.print("Mode - ");
-          lcd.setCursor(7,3);
-          lcd.print(mode);  
-          lcd.print("   ");      // clear any character left after the mode value
-        }
-        else if (mydata_remote.menuDown == 0 && mydata_remote.menuUp == 0){
-        menuFlag = 0;
-
-        } 
-
-       // check if remote has become disconnected
-
-        if(currentMillis - previousSafetyMillis > 200) {         
-            Serial.println("*no data* ");
-            mydata_remote.RLR = 512;
-            mydata_remote.RFB = 512;
-            mydata_remote.RT = 512;
-            mydata_remote.LLR = 512;
-            mydata_remote.LFB = 512;
-            mydata_remote.LT = 512;
-        }  
-
-        // Do the ODrive startup when I say
-
-        if (mode == 1 && mydata_remote.Select == 1 && ODriveFlag == 0) {     
-          ODriveSetup();
-          ODriveFlag = 1;
-        }
-
-      
-        /*
-        // print control data, count and mode to terminal
-        Serial.print(mydata_remote.menuDown);
-        Serial.print(" , ");
-        Serial.print(mydata_remote.Select);
-        Serial.print(" , ");
-        Serial.print(mydata_remote.menuUp);
-        Serial.print(" , ");
-        Serial.print(mydata_remote.toggleTop);
-        Serial.print(" , ");
-        Serial.print(mydata_remote.toggleBottom);
-        Serial.print(" , ");
-        Serial.print(mode);
-        Serial.print(" *** ");
-        Serial.print(mydata_remote.RLR);
-        Serial.print(" , ");
-        Serial.print(mydata_remote.RFB);
-        Serial.print(" , ");
-        Serial.print(mydata_remote.RT);
-        Serial.print(" , ");
-        Serial.print(mydata_remote.LLR);
-        Serial.print(" , ");
-        Serial.print(mydata_remote.LFB);
-        Serial.print(" , ");
-        Serial.println(mydata_remote.LT);
-
-        */
-
-
-
-        // run Kinematic Model function for each leg if we are in mode 2
-
-        if (mode == 2) {   
-          
-            // scale stick values to mm    
-            RT = map(mydata_remote.RT,0,1023,490,700);      // Z axis
-            RFB = map(mydata_remote.RFB,0,1023,-200,200);   // Y axis
-            RLR = map(mydata_remote.RLR,0,1023,150,-150);   // X axis
-            LT = map(mydata_remote.LT,0,1023,-20,20);
-            LFB = map(mydata_remote.LFB,0,1023,-20,20);
-            LLR = map(mydata_remote.LLR,0,1023,-20,20);   
-
-            // send the values to the function        
-            leg(RT, RFB, RLR, LT, LFB, LLR, 0, 0);                     // left back      
-            leg(RT, RFB, RLR, LT, LFB, LLR, 0, 1);                     // left front  
-            leg(RT, RFB, RLR, LT, LFB, LLR, 1, 0);                     // right back      
-            leg(RT, RFB, RLR, LT, LFB, LLR, 1, 1);                     // right front        
-        }
-
-        else if (mode == 3) {       // interpolation test
-
-            // set fixed values to move between
-
-            if (mydata_remote.Select == 1) {
-              RT = 550;
+                    previousSafetyMillis = currentMillis;
             }
 
-            else {
-            // values in mm  
-              RT = 650;
+            //  ************** menu handling & debounce *******************
+
+            if (mydata_remote.menuUp == 1 && menuFlag == 0) {
+                  menuFlag = 1;
+                  mode = mode+1;
+                  mode = constrain(mode,0,10);
+                  lcd.setCursor(0,3);
+                  lcd.print("Mode - ");
+                  lcd.setCursor(7,3);
+                  lcd.print(mode);
+                  lcd.print("   ");      // clear any character left after the mode value
+            } else if (mydata_remote.menuDown == 1 && menuFlag == 0) {
+                  menuFlag = 1;
+                  mode = mode-1;
+                  mode = constrain(mode,0,10);
+                  lcd.setCursor(0,3);
+                  lcd.print("Mode - ");
+                  lcd.setCursor(7,3);
+                  lcd.print(mode);
+                  lcd.print("   ");      // clear any character left after the mode value
+            } else if (mydata_remote.menuDown == 0 && mydata_remote.menuUp == 0){
+                menuFlag = 0;
             }
 
-            RFB = 0;
-            RLR = 0;
-            LT = 0;
-            LFB = 0;
-            LLR = 0;
+           // check if remote has become disconnected
+            if(currentMillis - previousSafetyMillis > 200) {
+                Serial.println("*no data* ");
+                mydata_remote.RLR = 512;
+                mydata_remote.RFB = 512;
+                mydata_remote.RT = 512;
+                mydata_remote.LLR = 512;
+                mydata_remote.LFB = 512;
+                mydata_remote.LT = 512;
+            }
 
-            // send the values to the function        
-            leg(RT, RFB, RLR, LT, LFB, LLR, 0, 0);                     // left back      
-            leg(RT, RFB, RLR, LT, LFB, LLR, 0, 1);                     // left front  
-            leg(RT, RFB, RLR, LT, LFB, LLR, 1, 0);                     // right back      
-            leg(RT, RFB, RLR, LT, LFB, LLR, 1, 1);                     // right front                      
-        
-        }  // end  of mode 3
+            // Do the ODrive startup when I say
+            if (mode == 1 && mydata_remote.Select == 1 && ODriveFlag == 0) {
+                ODriveSetup();
+                ODriveFlag = 1;
+            }
 
- 
-        
-          
-    } // end of 10ms cycle
-    
+            /*
+            // print control data, count and mode to terminal
+            Serial.print(mydata_remote.menuDown);
+            Serial.print(" , ");
+            Serial.print(mydata_remote.Select);
+            Serial.print(" , ");
+            Serial.print(mydata_remote.menuUp);
+            Serial.print(" , ");
+            Serial.print(mydata_remote.toggleTop);
+            Serial.print(" , ");
+            Serial.print(mydata_remote.toggleBottom);
+            Serial.print(" , ");
+            Serial.print(mode);
+            Serial.print(" *** ");
+            Serial.print(mydata_remote.RLR);
+            Serial.print(" , ");
+            Serial.print(mydata_remote.RFB);
+            Serial.print(" , ");
+            Serial.print(mydata_remote.RT);
+            Serial.print(" , ");
+            Serial.print(mydata_remote.LLR);
+            Serial.print(" , ");
+            Serial.print(mydata_remote.LFB);
+            Serial.print(" , ");
+            Serial.println(mydata_remote.LT);
+            */
 
- } // end of main loop
+            // run Kinematic Model function for each leg if we are in mode 2
+            if (mode == 2) {
+                // scale stick values to mm
+                RT = map(mydata_remote.RT,0,1023,490,700);      // Z axis
+                RFB = map(mydata_remote.RFB,0,1023,-200,200);   // Y axis
+                RLR = map(mydata_remote.RLR,0,1023,150,-150);   // X axis
+                LT = map(mydata_remote.LT,0,1023,-20,20);
+                LFB = map(mydata_remote.LFB,0,1023,-20,20);
+                LLR = map(mydata_remote.LLR,0,1023,-20,20);
 
+                // send the values to the function
+                leg(RT, RFB, RLR, LT, LFB, LLR, 0, 0);                     // left back
+                leg(RT, RFB, RLR, LT, LFB, LLR, 0, 1);                     // left front
+                leg(RT, RFB, RLR, LT, LFB, LLR, 1, 0);                     // right back
+                leg(RT, RFB, RLR, LT, LFB, LLR, 1, 1);                     // right front
+            } else if (mode == 3) {       // interpolation test
+                // set fixed values to move between
+                if (mydata_remote.Select == 1) {
+                  RT = 550;
+                } else {
+                // values in mm
+                  RT = 650;
+                }
 
-             
+                RFB = 0;
+                RLR = 0;
+                LT = 0;
+                LFB = 0;
+                LLR = 0;
 
+                // send the values to the function
+                leg(RT, RFB, RLR, LT, LFB, LLR, 0, 0);                     // left back
+                leg(RT, RFB, RLR, LT, LFB, LLR, 0, 1);                     // left front
+                leg(RT, RFB, RLR, LT, LFB, LLR, 1, 0);                     // right back
+                leg(RT, RFB, RLR, LT, LFB, LLR, 1, 1);                     // right front
+            }  // end  of mode 3
+        } // end of 10ms cycle
+} // end of main loop
